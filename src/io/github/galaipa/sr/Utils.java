@@ -2,6 +2,7 @@ package io.github.galaipa.sr;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -9,17 +10,20 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class Utils {
-
-    static final String COLOR_CODE_REGEX = ".*[§&][0-9a-f-A-F].*";
+    static final Pattern HEX_CODE_REGEX_PATTERN = Pattern.compile("[§&]#([0-9a-fA-F]{6})");
+    static final String COLOR_CODE_REGEX = ".*[§&]([0-9a-fA-F]|#[0-9a-fA-F]{6}|x([§&][0-9a-fA-F]){6}).*";
     static final String FORMAT_CODE_REGEX = ".*[§&][l-rL-R].*";
     static final String MAGIC_CODE_REGEX = ".*[§&][kK].*";
-    static final String ALL_CODE_REGEX = "[§&][0-9a-f-A-Fk-rK-R]";
+    static final String ALL_CODE_REGEX = "[§&]([0-9a-f-A-Fk-rK-R]|#[0-9a-fA-F]{6}|x([§&][0-9a-fA-F]){6})";
 
     public static String removeColorCodes(String string) {
         return ChatColor.stripColor(string).replaceAll(ALL_CODE_REGEX, "");
     }
 
     public static String formatString(String string, boolean overrideDefaultFormat) {
+        string = HEX_CODE_REGEX_PATTERN.matcher(string).replaceAll(matchResult ->
+                String.format("&x&%s&%s&%s&%s&%s&%s", (Object[]) matchResult.group(1).split(""))
+        );
         // The &r is added at the beginning to remove default formatting
         if (!overrideDefaultFormat || string.startsWith("&r")) {
             return ChatColor.translateAlternateColorCodes('&', string);
